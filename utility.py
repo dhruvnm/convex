@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def orient(p1, p2, p3):
-    return np.sign(np.linalg.det([[1, p1[0], p1[1]], [1, p2[0], p2[1]], [1, p3[0], p3[1]]]))
+    sign, _ =  np.linalg.slogdet([[1, p1[0], p1[1]], [1, p2[0], p2[1]], [1, p3[0], p3[1]]])
+    return sign
 
 def psuedo_angle(point):
     point = point / np.sqrt(point[0]**2 + point[1]**2)
