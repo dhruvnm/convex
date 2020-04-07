@@ -18,3 +18,6 @@ def draw_hull(hull):
     h = len(hull)
     for i in range(-1, h-1):
         plt.plot([hull[i][0], hull[i+1][0]], [hull[i][1], hull[i+1][1]], 'r')
+
+def psuedo_distance(a, b, c):
+    return abs(np.linalg.det([[a[0], b[0], c[0]], [a[1], b[1], c[1]], [1, 1, 1]]))

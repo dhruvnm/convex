@@ -1,9 +1,12 @@
-from utility import orient, psuedo_angle, draw_hull
+from utility import orient, psuedo_angle, psuedo_distance
 import numpy as np
 import pdb
 import matplotlib.pyplot as plt
 
 def grahams_scan(points):
+    if len(points) <= 3:
+        return points
+
     points.sort(key = psuedo_angle)
 
     p = (0, float('Inf'))
@@ -27,6 +30,9 @@ def grahams_scan(points):
     return stack
 
 def andrews_monotone_chain(points):
+    if len(points) <= 3:
+        return points
+
     points.sort(key = lambda x : x[0])
 
     upper = []
@@ -46,6 +52,9 @@ def andrews_monotone_chain(points):
     return upper[1:] + lower[1:]
 
 def divide_and_conquer(points):
+    if len(points) <= 3:
+        return points
+
     points.sort(key = lambda x : x[0])
     upper = dac_helper(points, 1)
     lower = dac_helper(points, -1)
@@ -153,9 +162,60 @@ def chans_algorithm(points):
 
     return final_hull[1:]
 
+def chans_algorithm_mod(points):
+    if len(points) <= 3:
+        return points
+
+    p = (0, float('Inf'))
+    x = float('Inf')
+    for point in points:
+        if point[1] < p[1]:
+            p = point
+        if point[0] < x:
+            x = point[0]
+
+    n = len(points)
+    m = int(np.ceil(np.log2(np.log2(n))))
+    i = 1
+    success = False
+    for i in range(m):
+        h = 2 ** (2 ** (i+1))
+        final_hull = [(x - 100, 0), p]
+
+        r = int(np.ceil(n/h))
+        mini_hulls = [None] * r
+        start = 0
+        end = h
+        for j in range(r-1):
+            mini_hulls[j] = grahams_scan(points[start:end])
+            start = end
+            end += h
+        mini_hulls[-1] = grahams_scan(points[start:])
+
+        for j in range(h):
+            next_point = jarvis_binary_search(final_hull[-1], mini_hulls[0])
+            for hull in mini_hulls[1:]:
+                point = jarvis_binary_search(final_hull[-1], hull)
+                if orient(final_hull[-2], final_hull[-1], point) > 0 and orient(final_hull[-1], next_point, point) <= 0:
+                    next_point = point
+            if next_point == final_hull[1]:
+                success = True
+                break
+            else:
+                final_hull.append(next_point)
+
+        if success:
+            break
+
+        points = []
+        for hull in mini_hulls:
+            points += hull
+        n = len(points)
+
+    return final_hull[1:]
+
 
 def jarvis_binary_search(q, hull):
-    #pdb.set_trace()
     if len(hull) == 1:
         return hull[0]
 
@@ -201,3 +261,78 @@ def jarvis_binary_search(q, hull):
                 i = m
 
     return hull[i]
+
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+def quickhull(points):
+    if len(points) <= 3:
+        return points
+
+    leftmost = (float('Inf'), 0)
+    rightmost = (float('-Inf'), 0)
+    for point in points:
+        if point[0] < leftmost[0]:
+            leftmost = point
+        if point[0] > rightmost[0]:
+            rightmost = point
+
+    L = Node(leftmost)
+    R = Node(rightmost)
+    L.next = R
+    R.next = L
+
+    top = []
+    bot = []
+
+    for point in points:
+        side = orient(L.data, R.data, point)
+        if side > 0:
+            top.append(point)
+        elif side < 0:
+            bot.append(point)
+
+    qh_helper(top, L, R)
+    qh_helper(bot, R, L)
+
+    hull = [L.data]
+    start = L
+    L = L.next
+    while L is not start:
+        hull.append(L.data)
+        L = L.next
+
+    return hull
+
+
+def qh_helper(points, P, Q):
+    if not points:
+        return
+
+    max_dist = float('-Inf')
+    max_dist_point = None
+
+    for point in points:
+        dist = psuedo_distance(P.data, Q.data, point)
+        if  dist > max_dist:
+            max_dist = dist
+            max_dist_point = point
+
+    C = Node(max_dist_point)
+    Q.next = C
+    C.next = P
+
+    left = []
+    right = []
+
+    for point in points:
+        if orient(P.data, C.data, point) > 0:
+            left.append(point)
+        elif orient(C.data, Q.data, point) > 0:
+            right.append(point)
+
+    qh_helper(left, P, C)
+    qh_helper(right, C, Q)
+    return

@@ -1,41 +1,49 @@
 from r2dist import *
-from convex import grahams_scan, andrews_monotone_chain, divide_and_conquer, jarvis_march, chans_algorithm
+from convex import grahams_scan, andrews_monotone_chain, divide_and_conquer, jarvis_march, chans_algorithm, quickhull, chans_algorithm_mod
 from utility import draw_hull
 import numpy as np
 import matplotlib.pyplot as plt
 from time import perf_counter
 
-#point_sets = [None] * 100
-#for i in range(100):
-#    point_sets[i] = uniform_circle(1000, 20)
-#
-#total_time_graham = 0
-#total_time_andrew = 0
-#for point_set in point_sets:
-#    points = list(zip(point_set[0], point_set[1]))
-#    tic = perf_counter()
-#    grahams_scan(points)
-#    toc = perf_counter()
-#    total_time_graham += toc - tic
-#
-#for point_set in point_sets:
-#    points = list(zip(point_set[0], point_set[1]))
-#    tic = perf_counter()
-#    andrews_monotone_chain(points)
-#    toc = perf_counter()
-#    total_time_andrew += toc - tic
-#
-#avg_graham = total_time_graham / 100
-#avg_andrew = total_time_andrew / 100
-#
-#print("Average Graham:", avg_graham)
-#print("Average Andrew:", avg_andrew)
+def generate_pointsets(n, r, distribution, num_dists):
+    pointsets = []
+    for _ in range(num_dists):
+        x, y = distribution(n, r)
+        pointsets.append(list(zip(x,y)))
 
-(x, y) = uniform_circle(1000, 5)
-points = list(zip(x,y))
-plt.scatter(x, y)
-hull = chans_algorithm(points)
-#p = jarvis_binary_search((-4, -4), hull)
-draw_hull(hull)
-#plt.plot([-4, p[0]],[-4, p[1]], 'g')
-plt.show()
+    return pointsets
+
+def performance(pointsets, algorithm):
+    times = []
+    for points in pointsets:
+        tic = perf_counter()
+        algorithm(points)
+        toc = perf_counter()
+        times.append(toc - tic)
+
+    return min(times), np.median(times), np.mean(times), max(times)
+
+pointsets = generate_pointsets(1000000, 10, uniform_circle, 10)
+
+str = "{}\n    Min: {} Median: {} Average: {} Max: {}"
+
+mn, med, avg, mx = performance(pointsets, grahams_scan)
+print(str.format("Graham's Scan", mn, med, avg, mx))
+
+#mn, med, avg, mx = performance(pointsets, andrews_monotone_chain)
+#print(str.format("Andrew's Monotone Chain", mn, med, avg, mx))
+
+#mn, med, avg, mx = performance(pointsets, divide_and_conquer)
+#print(str.format("Divide and Conquer", mn, med, avg, mx))
+
+#mn, med, avg, mx = performance(pointsets, quickhull)
+#print(str.format("QuickHull", mn, med, avg, mx))
+
+#mn, med, avg, mx = performance(pointsets, jarvis_march)
+#print(str.format("Jarvis March", mn, med, avg, mx))
+
+#mn, med, avg, mx = performance(pointsets, chans_algorithm)
+#print(str.format("Chan's Algorithm", mn, med, avg, mx))
+
+mn, med, avg, mx = performance(pointsets, chans_algorithm_mod)
+print(str.format("Chan's Algorithm Modified", mn, med, avg, mx))
