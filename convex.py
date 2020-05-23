@@ -3,10 +3,17 @@ import numpy as np
 import pdb
 import matplotlib.pyplot as plt
 
+
 def grahams_scan(points):
+    """
+    Compute the convex hull of points using Graham's Scan.
+    Returns a list of points on the hull.
+    """
     if len(points) <= 3:
         return points
 
+    # First we determine the lowest point in the pointset
+    # Break ties by taking the point with smaller x-coord
     p = (0, float('Inf'))
     for point in points:
         if point[1] < p[1]:
@@ -15,82 +22,119 @@ def grahams_scan(points):
             if point[0] < p[0]:
                 p = point
 
+    # Shoot a ray horizontally to the right from p
+    # Sort the points in order of increasing angle from the ray
     points.sort(key = lambda x : psuedo_angle(p, x))
-    stack = [points[0], points[1], points[2]]
 
+    stack = [points[0], points[1], points[2]]
     for point in points[3:]:
+        # Remove points on the current hull until there is a left hand turn
+        # with respect to the last two points on the hull and the current point
         while len(stack) > 1 and orient(stack[-2], stack[-1], point) < 0:
             stack.pop()
         stack.append(point)
 
-    while len(stack) > 2 and orient(stack[-2], stack[-1], stack[0]) < 0:
-        stack.pop()
-
     return stack
 
 def andrews_monotone_chain(points):
+    """
+    Compute the convex hull of points using Andrew's Monotone Chain Algorithm.
+    Returns a list of points on the hull.
+    """
     if len(points) <= 3:
         return points
 
+    # Sort the points based on increasing x coordinate.
     points.sort(key = lambda x : x[0])
 
+    # Compute the upper hull
     upper = []
     for point in points:
+        # Remove points on the current hull until there is a right hand turn
+        # with respect to the last two points on the hull and the current point
         while len(upper) > 1 and orient(upper[-2], upper[-1], point) > 0:
             upper.pop()
         upper.append(point)
 
-    upper = upper[::-1]
+    upper = upper[::-1] # Reverse upper hull since we want left turns
 
+    # Computer the lower hull
     lower = []
     for point in points:
+        # Remove points on the current hull until there is a left hand turn
+        # with respect to the last two points on the hull and the current point
         while len(lower) > 1 and orient(lower[-2], lower[-1], point) < 0:
             lower.pop()
         lower.append(point)
 
+    # Concatenate the two hulls to form the complete hull
+    # Note they will both have the leftmost and rightmost points
+    # Thus each of them ignores one of the points.
     return upper[1:] + lower[1:]
 
 def divide_and_conquer(points):
+    """
+    Compute the convex hull of points using the Divide and Conquer algorithm.
+    Returns a list of points on the hull.
+    """
     if len(points) <= 3:
         return points
 
+    # Sort the points by increasing x-coordinate
     points.sort(key = lambda x : x[0])
-    upper = dac_helper(points, 1)
-    lower = dac_helper(points, -1)
+    upper = dac_helper(points, 1) # Compute upper hull
+    lower = dac_helper(points, -1) # Compute lower hull
 
-    upper = upper[::-1]
-    return upper[1:] + lower[1:]
+    upper = upper[::-1] # Reverse to get left turns
+    return upper[1:] + lower[1:] # Concatenate and return complete hull
 
 def dac_helper(points, bad_dir):
+    """
+    Recursive helper method to compute a partial hull of points
+    bad_dir determines which direction we DON'T want when computing the hull
+        1 means we don't want left turns
+        -1 means we don't want right turns
+    Returns a list of points on the partial hull.
+    """
     if len(points) < 3:
         return points
 
     if len(points) == 3:
+        # Check to see if the middle point is inside the hull
         if orient(points[0], points[1], points[2]) == bad_dir:
             return [points[0], points[2]]
         else:
             return points
 
     m = len(points) // 2
+    # Recursively compute partial hulls on the left and right half of the points
     left = dac_helper(points[:m], bad_dir)
     right = dac_helper(points[m:], bad_dir)
 
     lp, rp = len(left) - 1, 0
-    found_upper_tangent = False
-    while not found_upper_tangent:
+    found_tangent = False
+    # Look for the tangent line that has both partial hulls on the same side.
+    # Walk a test line between the two hulls until it is found
+    while not found_tangent:
         if lp > 0 and orient(left[lp - 1], left[lp], right[rp]) == bad_dir:
             lp -= 1
         elif rp < len(right) - 1 and orient(left[lp], right[rp], right[rp + 1]) == bad_dir:
             rp += 1
         else:
-            found_upper_tangent = True
+            found_tangent = True
 
+    # Remove points below the tangent line, concatenate, and return the hull
     return left[:lp+1] + right[rp:]
 
 def jarvis_march(points):
+    """
+    Compute the convex hull of points using the Jarvis March algorithm.
+    Returns a list of points on the hull.
+    """
     if len(points) <= 3:
         return points
 
+    # Find the lowest point in the pointset.
     p = (0, float('Inf'))
     x = float('Inf')
     for point in points:
@@ -99,9 +143,16 @@ def jarvis_march(points):
         if point[0] < x:
             x = point[0]
 
+    # The hull is initialized with a sentinel point that is effectively very
+    # far to the left. The first actual point is the lowest point that was
+    # computed above.
     hull = [(x - 100, 0), p]
     hull_computed = False
 
+    # Look for the next point on the hull. Essentially looking for the point
+    # that cause the least amount of "turning" when compared to the previous
+    # edge. This ensures, all other points will be within the hull. The loop
+    # ends when we get back to p.
     while not hull_computed:
         next_point = points[0]
         for point in points[1:]:
@@ -112,12 +163,17 @@ def jarvis_march(points):
         else:
             hull.append(next_point)
 
-    return hull[1:]
+    return hull[1:] # Return the hull minus the sentinel point.
 
 def chans_algorithm(points):
+    """
+    Compute the convex hull using Chan's Algorithm.
+    Returns a list of points on the hull.
+    """
     if len(points) <= 3:
         return points
 
+    # Find the lowest point in the pointset.
     p = (0, float('Inf'))
     x = float('Inf')
     for point in points:
@@ -127,23 +183,30 @@ def chans_algorithm(points):
             x = point[0]
 
     n = len(points)
+    # Max number of iterations needed for the algorithm to succeed
     m = int(np.ceil(np.log2(np.log2(n))))
     i = 1
     success = False
     for i in range(m):
-        h = 2 ** (2 ** (i+1))
-        final_hull = [(x - 100, 0), p]
+        h = 2 ** (2 ** (i+1)) # the "guess" for how many points on the hull.
+        final_hull = [(x - 100, 0), p] # hull has sentinel and p to start
 
-        r = int(np.ceil(n/h))
+        r = int(np.ceil(n/h)) # number of mini-hulls to compute
         mini_hulls = [None] * r
         start = 0
         end = h
+        # Compute all mini hulls using graham's scan
         for j in range(r-1):
             mini_hulls[j] = grahams_scan(points[start:end])
             start = end
             end += h
         mini_hulls[-1] = grahams_scan(points[start:])
 
+        # For each mini-hull, find the correct representative point such that
+        # the line through the last point on the hull and the representative is
+        # tangent to the mini hull. This is done through a binary search.
+        # Then we perform a jarvis march on all of these possible points to
+        # find the correct one.
         for j in range(h):
             next_point = jarvis_binary_search(final_hull[-1], mini_hulls[0])
             for hull in mini_hulls[1:]:
@@ -159,12 +222,17 @@ def chans_algorithm(points):
         if success:
             break
 
-    return final_hull[1:]
+    return final_hull[1:] # return hull minus the sentinel
 
 def chans_algorithm_mod(points):
+    """
+    Compute the convex hull using a modified version of Chan's Algorithm.
+    Returns a list of points on the hull.
+    """
     if len(points) <= 3:
         return points
 
+    # Find the lowest point in the pointset.
     p = (0, float('Inf'))
     x = float('Inf')
     for point in points:
@@ -174,23 +242,30 @@ def chans_algorithm_mod(points):
             x = point[0]
 
     n = len(points)
+    # Max number of iterations needed for the algorithm to succeed
     m = int(np.ceil(np.log2(np.log2(n))))
     i = 1
     success = False
     for i in range(m):
-        h = 2 ** (2 ** (i+1))
-        final_hull = [(x - 100, 0), p]
+        h = 2 ** (2 ** (i+1)) # the "guess" for how many points on the hull.
+        final_hull = [(x - 100, 0), p] # hull has sentinel and p to start
 
-        r = int(np.ceil(n/h))
+        r = int(np.ceil(n/h)) # number of mini-hulls to compute
         mini_hulls = [None] * r
         start = 0
         end = h
+        # Compute all mini hulls using graham's scan
         for j in range(r-1):
             mini_hulls[j] = grahams_scan(points[start:end])
             start = end
             end += h
         mini_hulls[-1] = grahams_scan(points[start:])
 
+        # For each mini-hull, find the correct representative point such that
+        # the line through the last point on the hull and the representative is
+        # tangent to the mini hull. This is done through a binary search.
+        # Then we perform a jarvis march on all of these possible points to
+        # find the correct one.
         for j in range(h):
             next_point = jarvis_binary_search(final_hull[-1], mini_hulls[0])
             for hull in mini_hulls[1:]:
@@ -206,15 +281,24 @@ def chans_algorithm_mod(points):
         if success:
             break
 
+        # This is an optimization. Clearly points iwthin each mini hull will
+        # never be on the final hull. Thus for the next iteration, we only
+        # consider the points on each mini hull.
         points = []
         for hull in mini_hulls:
             points += hull
         n = len(points)
 
-    return final_hull[1:]
+    return final_hull[1:] # return hull minus the sentinel
 
 
 def jarvis_binary_search(q, hull):
+    """
+    This is a helper method for Chan's algorithm.
+    It utilizes binary search to find a point on the hull such that the support
+    line through q and this point will have the points on the hull to the left.
+    This point is returned.
+    """
     if len(hull) == 1:
         return hull[0]
 
@@ -223,6 +307,8 @@ def jarvis_binary_search(q, hull):
     k = n - 1
     found_point = False
 
+    # A giant case analysis to find the correct point
+    # Will possibly detail how this all works at a later date.
     while not found_point:
         m = (i + k) // 2
         if i == k:
@@ -262,14 +348,21 @@ def jarvis_binary_search(q, hull):
     return hull[i]
 
 class Node:
+    """A simple node class for a linked list"""
     def __init__(self, data):
+        """Constructor for a node."""
         self.data = data
         self.next = None
 
 def quickhull(points):
+    """
+    Compute the convex hull of points using the Quickhull algorithm.
+    Returns a list of points on the hull.
+    """
     if len(points) <= 3:
         return points
 
+    # Find the leftmost and rightmost points in the set.
     leftmost = (float('Inf'), 0)
     rightmost = (float('-Inf'), 0)
     for point in points:
@@ -278,14 +371,17 @@ def quickhull(points):
         if point[0] > rightmost[0]:
             rightmost = point
 
+    # The leftmost and rightmost points are guaranteed to be on the hull.
+    # We form a circular linked list that will represent this "initial" hull.
     L = Node(leftmost)
     R = Node(rightmost)
     L.next = R
     R.next = L
 
+    # Separate the points into two groups. Those that fall above the current
+    # hull and those that fall below.
     top = []
     bot = []
-
     for point in points:
         side = orient(L.data, R.data, point)
         if side > 0:
@@ -293,9 +389,11 @@ def quickhull(points):
         elif side < 0:
             bot.append(point)
 
+    # Recursively compute the upper and lower hulls
     qh_helper(top, L, R)
     qh_helper(bot, R, L)
 
+    # Convert the circular linked list to an array.
     hull = [L.data]
     start = L
     L = L.next
@@ -307,31 +405,43 @@ def quickhull(points):
 
 
 def qh_helper(points, P, Q):
+    """
+    Recursive helper method to find next point on the hull.
+    P and Q represent an edge on the current hull.
+    points is all points in between P and Q with respect to x-coordinate.
+    This method updates the convex hull and returns.
+    """
     if not points:
         return
 
     max_dist = float('-Inf')
     max_dist_point = None
 
+    # Find the point that is the farthest distance from the line formed P and Q.
     for point in points:
         dist = psuedo_distance(P.data, Q.data, point)
         if  dist > max_dist:
             max_dist = dist
             max_dist_point = point
 
+    # The point that is the farther distance is clearly on the convex hull.
+    # We add it between P and Q.
     C = Node(max_dist_point)
     Q.next = C
     C.next = P
 
+    # Separate the points into those between P and C and those between C and Q.
+    # Discard all points below either of these edges since they obviously
+    # will not be on the hull.
     left = []
     right = []
-
     for point in points:
         if orient(P.data, C.data, point) > 0:
             left.append(point)
         elif orient(C.data, Q.data, point) > 0:
             right.append(point)
 
+    # Recursively compute the rest of the hull and return. 
     qh_helper(left, P, C)
     qh_helper(right, C, Q)
     return
