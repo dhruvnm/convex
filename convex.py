@@ -1,4 +1,4 @@
-from utility import orient, psuedo_angle, psuedo_distance
+from utility import orient, pseudo_angle, pseudo_distance
 import numpy as np
 import pdb
 import matplotlib.pyplot as plt
@@ -24,11 +24,11 @@ def grahams_scan(points):
 
     # Shoot a ray horizontally to the right from p
     # Sort the points in order of increasing angle from the ray
-    points.sort(key = lambda x : psuedo_angle(p, x))
+    points.sort(key = lambda x : pseudo_angle(p, x))
 
     stack = [points[0], points[1], points[2]]
     for point in points[3:]:
-        # Remove points on the current hull until there is a left hand turn
+        # Remove points on the current hull until there is a left turn
         # with respect to the last two points on the hull and the current point
         while len(stack) > 1 and orient(stack[-2], stack[-1], point) < 0:
             stack.pop()
@@ -50,7 +50,7 @@ def andrews_monotone_chain(points):
     # Compute the upper hull
     upper = []
     for point in points:
-        # Remove points on the current hull until there is a right hand turn
+        # Remove points on the current hull until there is a right turn
         # with respect to the last two points on the hull and the current point
         while len(upper) > 1 and orient(upper[-2], upper[-1], point) > 0:
             upper.pop()
@@ -61,7 +61,7 @@ def andrews_monotone_chain(points):
     # Computer the lower hull
     lower = []
     for point in points:
-        # Remove points on the current hull until there is a left hand turn
+        # Remove points on the current hull until there is a left turn
         # with respect to the last two points on the hull and the current point
         while len(lower) > 1 and orient(lower[-2], lower[-1], point) < 0:
             lower.pop()
@@ -419,7 +419,7 @@ def qh_helper(points, P, Q):
 
     # Find the point that is the farthest distance from the line formed P and Q.
     for point in points:
-        dist = psuedo_distance(P.data, Q.data, point)
+        dist = pseudo_distance(P.data, Q.data, point)
         if  dist > max_dist:
             max_dist = dist
             max_dist_point = point
@@ -441,7 +441,7 @@ def qh_helper(points, P, Q):
         elif orient(C.data, Q.data, point) > 0:
             right.append(point)
 
-    # Recursively compute the rest of the hull and return. 
+    # Recursively compute the rest of the hull and return.
     qh_helper(left, P, C)
     qh_helper(right, C, Q)
     return
