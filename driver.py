@@ -23,12 +23,17 @@ def performance(pointsets, algorithm):
 
     return min(times), np.median(times), np.mean(times), max(times)
 
-pointsets = generate_pointsets(1000000, 10, uniform_circle, 10)
+(x, y) = uniform_circle(1000, 1)
+hull = chans_algorithm_mod(list(zip(x,y)))
+plt.figure()
+plt.scatter(x, y)
+draw_hull(hull)
+plt.show()
 
 str = "{}\n    Min: {} Median: {} Average: {} Max: {}"
 
-mn, med, avg, mx = performance(pointsets, grahams_scan)
-print(str.format("Graham's Scan", mn, med, avg, mx))
+# mn, med, avg, mx = performance(pointsets, grahams_scan)
+# print(str.format("Graham's Scan", mn, med, avg, mx))
 
 #mn, med, avg, mx = performance(pointsets, andrews_monotone_chain)
 #print(str.format("Andrew's Monotone Chain", mn, med, avg, mx))
@@ -45,5 +50,5 @@ print(str.format("Graham's Scan", mn, med, avg, mx))
 #mn, med, avg, mx = performance(pointsets, chans_algorithm)
 #print(str.format("Chan's Algorithm", mn, med, avg, mx))
 
-mn, med, avg, mx = performance(pointsets, chans_algorithm_mod)
-print(str.format("Chan's Algorithm Modified", mn, med, avg, mx))
+# mn, med, avg, mx = performance(pointsets, chans_algorithm_mod)
+# print(str.format("Chan's Algorithm Modified", mn, med, avg, mx))

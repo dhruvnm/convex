@@ -7,12 +7,17 @@ def orient(p1, p2, p3):
     sign, _ =  np.linalg.slogdet([[1, p1[0], p1[1]], [1, p2[0], p2[1]], [1, p3[0], p3[1]]])
     return sign
 
-def psuedo_angle(point):
-    point = point / np.sqrt(point[0]**2 + point[1]**2)
-    if point[0] >= 0:
-        return point[1]
+def psuedo_angle(p1, p2):
+    if p1 == p2:
+        return (0,0)
+
+    length = ((p2[0] - p1[0])**2 + (p2[1] - p1[1]) ** 2) ** (1/2)
+    height = (p2[1] - p1[1]) / length
+
+    if p2[0] >= p1[0]:
+        return (height, length)
     else:
-        return 2 - point[1]
+        return (2 - height, length)
 
 def draw_hull(hull):
     h = len(hull)

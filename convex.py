@@ -7,22 +7,21 @@ def grahams_scan(points):
     if len(points) <= 3:
         return points
 
-    points.sort(key = psuedo_angle)
-
     p = (0, float('Inf'))
-    for (i, point) in enumerate(points):
+    for point in points:
         if point[1] < p[1]:
             p = point
-            start = i
+        elif point[1] == p[1]:
+            if point[0] < p[0]:
+                p = point
 
-    stack = []
-    n = len(points)
-    start -= n
+    points.sort(key = lambda x : psuedo_angle(p, x))
+    stack = [points[0], points[1], points[2]]
 
-    for i in range(start, start+n):
-        while len(stack) > 1 and orient(stack[-2], stack[-1], points[i]) < 0:
+    for point in points[3:]:
+        while len(stack) > 1 and orient(stack[-2], stack[-1], point) < 0:
             stack.pop()
-        stack.append(points[i])
+        stack.append(point)
 
     while len(stack) > 2 and orient(stack[-2], stack[-1], stack[0]) < 0:
         stack.pop()
