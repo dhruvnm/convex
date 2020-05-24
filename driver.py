@@ -23,7 +23,7 @@ def performance(pointsets, algorithm):
 
     return min(times), np.median(times), np.mean(times), max(times)
 
-(x, y) = uniform_circle(1000, 1)
+(x, y) = gaussian(1000, 1)
 hull = chans_algorithm_mod(list(zip(x,y)))
 plt.figure()
 plt.scatter(x, y)
