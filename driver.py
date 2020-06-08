@@ -23,8 +23,8 @@ def performance(pointsets, algorithm):
 
     return min(times), np.median(times), np.mean(times), max(times)
 
-(x, y) = gaussian(1000, 1)
-hull = chans_algorithm_mod(list(zip(x,y)))
+(x, y) = uniform_annulus(1000)
+hull = grahams_scan(list(zip(x,y)))
 plt.figure()
 plt.scatter(x, y)
 draw_hull(hull)
