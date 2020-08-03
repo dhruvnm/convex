@@ -1,6 +1,7 @@
 # Generates points in R2 in various distributions
 
 import numpy as np
+from scipy import stats
 
 def uniform_disk(n, radius=1, center=(0,0)):
     x = [None] * n
@@ -70,3 +71,34 @@ def uniform_annulus(n, inner_radius=0.5, outer_radius=1, center=(0,0)):
         y[i] = r * np.sin(a) + center[1]
     return (x, y)
 
+def exponential(n, beta_x=1, beta_y=1):
+    x = [None] * n
+    y = [None] * n
+    for i in range(n):
+        x[i] = np.random.exponential(beta_x)
+        y[i] = np.random.exponential(beta_y)
+    return (x, y)
+
+def lognormal(n, mu_x=0, mu_y=0, sigma_x=1, sigma_y=1):
+    x = [None] * n
+    y = [None] * n
+    for i in range(n):
+        x[i] = np.random.lognormal(mu_x, sigma_x)
+        y[i] = np.random.lognormal(mu_y, sigma_y)
+    return (x, y)
+
+def johnsonsu(n, a_x=1, a_y=1, b_x=1, b_y=1):
+    x = [None] * n
+    y = [None] * n
+    for i in range(n):
+        x[i] = stats.johnsonsu.rvs(a_x, b_x)
+        y[i] = stats.johnsonsu.rvs(a_y, b_y)
+    return (x, y)
+
+def extreme_value(n, c_x=0, c_y=0):
+    x = [None] * n
+    y = [None] * n
+    for i in range(n):
+        x[i] = stats.genextreme.rvs(c_x)
+        y[i] = stats.genextreme.rvs(c_y)
+    return (x, y)
