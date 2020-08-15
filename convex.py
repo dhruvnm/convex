@@ -2,6 +2,7 @@ from utility import orient, pseudo_angle, pseudo_distance
 import numpy as np
 import pdb
 import matplotlib.pyplot as plt
+from llist import dllist, dllistnode
 
 
 def grahams_scan(points):
@@ -347,13 +348,6 @@ def jarvis_binary_search(q, hull):
 
     return hull[i]
 
-class Node:
-    """A simple node class for a linked list"""
-    def __init__(self, data):
-        """Constructor for a node."""
-        self.data = data
-        self.next = None
-
 def quickhull(points):
     """
     Compute the convex hull of points using the Quickhull algorithm.
@@ -373,38 +367,29 @@ def quickhull(points):
 
     # The leftmost and rightmost points are guaranteed to be on the hull.
     # We form a circular linked list that will represent this "initial" hull.
-    L = Node(leftmost)
-    R = Node(rightmost)
-    L.next = R
-    R.next = L
+    hull = dllist([leftmost, rightmost])
+    L = hull.first
+    R = hull.last
 
     # Separate the points into two groups. Those that fall above the current
     # hull and those that fall below.
     top = []
     bot = []
     for point in points:
-        side = orient(L.data, R.data, point)
+        side = orient(L.value, R.value, point)
         if side > 0:
             top.append(point)
         elif side < 0:
             bot.append(point)
 
     # Recursively compute the upper and lower hulls
-    qh_helper(top, L, R)
-    qh_helper(bot, R, L)
+    qh_helper(top, hull, L, R)
+    qh_helper(bot, hull, R, L)
 
-    # Convert the circular linked list to an array.
-    hull = [L.data]
-    start = L
-    L = L.next
-    while L is not start:
-        hull.append(L.data)
-        L = L.next
-
-    return hull
+    return list(hull)
 
 
-def qh_helper(points, P, Q):
+def qh_helper(points, hull, P, Q):
     """
     Recursive helper method to find next point on the hull.
     P and Q represent an edge on the current hull.
@@ -419,16 +404,15 @@ def qh_helper(points, P, Q):
 
     # Find the point that is the farthest distance from the line formed P and Q.
     for point in points:
-        dist = pseudo_distance(P.data, Q.data, point)
+        dist = pseudo_distance(P.value, Q.value, point)
         if  dist > max_dist:
             max_dist = dist
             max_dist_point = point
 
     # The point that is the farther distance is clearly on the convex hull.
     # We add it between P and Q.
-    C = Node(max_dist_point)
-    Q.next = C
-    C.next = P
+    C = dllistnode(max_dist_point)
+    hull.insertnode(C, Q)
 
     # Separate the points into those between P and C and those between C and Q.
     # Discard all points below either of these edges since they obviously
@@ -436,12 +420,12 @@ def qh_helper(points, P, Q):
     left = []
     right = []
     for point in points:
-        if orient(P.data, C.data, point) > 0:
+        if orient(P.value, C.value, point) > 0:
             left.append(point)
-        elif orient(C.data, Q.data, point) > 0:
+        elif orient(C.value, Q.value, point) > 0:
             right.append(point)
 
     # Recursively compute the rest of the hull and return.
-    qh_helper(left, P, C)
-    qh_helper(right, C, Q)
+    qh_helper(left, hull, P, C)
+    qh_helper(right, hull, C, Q)
     return

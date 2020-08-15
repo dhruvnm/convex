@@ -23,8 +23,8 @@ def performance(pointsets, algorithm):
 
     return min(times), np.median(times), np.mean(times), max(times)
 
-(x, y) = extreme_value(1000)
-hull = grahams_scan(list(zip(x,y)))
+(x, y) = uniform_annulus(1000)
+hull = quickhull(list(zip(x,y)))
 plt.figure()
 plt.scatter(x, y)
 plt.show()
