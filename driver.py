@@ -1,5 +1,5 @@
 from r2dist import *
-from convex import grahams_scan, andrews_monotone_chain, divide_and_conquer, jarvis_march, chans_algorithm, quickhull, chans_algorithm_mod
+from convex import grahams_scan, andrews_monotone_chain, divide_and_conquer, jarvis_march, chans_algorithm, quickhull, chans_algorithm_mod, symmetric_hull
 from utility import draw_hull
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,11 +23,11 @@ def performance(pointsets, algorithm):
 
     return min(times), np.median(times), np.mean(times), max(times)
 
-(x, y) = uniform_annulus(1000)
-hull = quickhull(list(zip(x,y)))
+(x, y) = uniform_disk(100)
 plt.figure()
 plt.scatter(x, y)
 plt.show()
+hull = symmetric_hull(list(zip(x,y)))
 plt.figure()
 plt.scatter(x, y)
 draw_hull(hull)

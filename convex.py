@@ -429,3 +429,95 @@ def qh_helper(points, hull, P, Q):
     qh_helper(left, hull, P, C)
     qh_helper(right, hull, C, Q)
     return
+
+def symmetric_hull(points):
+    if len(points) <= 3:
+        return points
+
+    # Lexicographic sort by y-coordinate
+    points.sort(key = lambda x : (x[1], x[0]))
+
+    # Search for endpoints
+    p_top = (0, float('-Inf'))
+    p_bot = (0, float('Inf'))
+    p_right = (float('-Inf'), 0)
+    p_left = (float('Inf'), 0)
+    for point in points:
+        if p_top[1] < point[1]:
+            p_top = point
+        if p_bot[1] > point[1]:
+            p_bot = point
+        if p_right[0] < point[0]:
+            p_right = point
+        if p_left[0] > point[0]:
+            p_left = point
+
+    # Intialize stacks
+    t1= [(p_top, float('Inf'))]
+    t2= [(p_top, float('-Inf'))]
+    t3= [(p_bot, float('Inf'))]
+    t4= [(p_bot, float('-Inf'))]
+
+    # pdb.set_trace()
+
+    # Q3 and Q4
+    stop_right = False
+    stop_left = False
+    for point in points:
+        if not stop_right or not stop_left:
+            if point[0] > p_bot[0] and not stop_right:
+                t = t4
+                x_compare = lambda p, t: True if p[0] > t[-1][0][0] else False
+                s_compare = lambda s, t: True if s < t[-1][1] else False
+                if point[0] == p_right[0]:
+                    stop_right = True
+            elif point[0] <= p_bot[0] and not stop_left:
+                t = t3
+                x_compare = lambda p, t: True if p[0] < t[-1][0][0] else False
+                s_compare = lambda s, t: True if s > t[-1][1] else False
+                if point[0] == p_left[0]:
+                    stop_left = True
+            else:
+                continue
+            
+            if x_compare(point, t):
+                slope = (point[1] - t[-1][0][1]) / (point[0] - t[-1][0][0])
+                while s_compare(slope, t):
+                    t.pop()
+                    slope = (point[1] - t[-1][0][1]) / (point[0] - t[-1][0][0])
+                t.append((point, slope))
+        else:
+            break
+
+    # Q1 and Q2
+    stop_right = False
+    stop_left = False
+    for point in reversed(points):
+        if not stop_right or not stop_left:
+            if point[0] > p_top[0] and not stop_right:
+                t = t1
+                x_compare = lambda p, t: True if p[0] > t[-1][0][0] else False
+                s_compare = lambda s, t: True if s > t[-1][1] else False
+                if point[0] == p_right[0]:
+                    stop_right = True
+            elif point[0] <= p_bot[0] and not stop_left:
+                t = t2
+                x_compare = lambda p, t: True if p[0] < t[-1][0][0] else False
+                s_compare = lambda s, t: True if s < t[-1][1] else False
+                if point[0] == p_left[0]:
+                    stop_left = True
+            else:
+                continue
+            
+            if x_compare(point, t):
+                slope = (point[1] - t[-1][0][1]) / (point[0] - t[-1][0][0])
+                while s_compare(slope, t):
+                    t.pop()
+                    slope = (point[1] - t[-1][0][1]) / (point[0] - t[-1][0][0])
+                t.append((point, slope))
+        else:
+            break
+
+    hull = t1[::-1] + t2[1:-1] + t3[::-1] + t4[1:-1]
+    ret = [x[0] for x in hull]
+    return ret
