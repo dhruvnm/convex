@@ -1,6 +1,5 @@
 from utility import orient, pseudo_angle, pseudo_distance
 import numpy as np
-import pdb
 import matplotlib.pyplot as plt
 from llist import dllist, dllistnode
 
@@ -431,6 +430,10 @@ def qh_helper(points, hull, P, Q):
     return
 
 def symmetric_hull(points):
+    """
+    Compute the convex hull of points using the SymmetricHull algorithm.
+    Returns a list of points on the hull.
+    """
     if len(points) <= 3:
         return points
 
@@ -458,19 +461,20 @@ def symmetric_hull(points):
     t3= [(p_bot, float('Inf'))]
     t4= [(p_bot, float('-Inf'))]
 
-    # pdb.set_trace()
-
     # Q3 and Q4
     stop_right = False
     stop_left = False
     for point in points:
         if not stop_right or not stop_left:
+            # Q4 case
             if point[0] > p_bot[0] and not stop_right:
                 t = t4
                 x_compare = lambda p, t: True if p[0] > t[-1][0][0] else False
                 s_compare = lambda s, t: True if s < t[-1][1] else False
                 if point[0] == p_right[0]:
                     stop_right = True
+            
+            # Q3 case
             elif point[0] <= p_bot[0] and not stop_left:
                 t = t3
                 x_compare = lambda p, t: True if p[0] < t[-1][0][0] else False
@@ -480,6 +484,7 @@ def symmetric_hull(points):
             else:
                 continue
             
+            # Ensure the new point adheres to monotonic slope increase/decrease
             if x_compare(point, t):
                 slope = (point[1] - t[-1][0][1]) / (point[0] - t[-1][0][0])
                 while s_compare(slope, t):
@@ -494,12 +499,15 @@ def symmetric_hull(points):
     stop_left = False
     for point in reversed(points):
         if not stop_right or not stop_left:
+            # Q1 case
             if point[0] > p_top[0] and not stop_right:
                 t = t1
                 x_compare = lambda p, t: True if p[0] > t[-1][0][0] else False
                 s_compare = lambda s, t: True if s > t[-1][1] else False
                 if point[0] == p_right[0]:
                     stop_right = True
+
+            # Q2 case
             elif point[0] <= p_bot[0] and not stop_left:
                 t = t2
                 x_compare = lambda p, t: True if p[0] < t[-1][0][0] else False
@@ -509,6 +517,7 @@ def symmetric_hull(points):
             else:
                 continue
             
+            # Ensure the new point adheres to monotonic slope increase/decrease
             if x_compare(point, t):
                 slope = (point[1] - t[-1][0][1]) / (point[0] - t[-1][0][0])
                 while s_compare(slope, t):
@@ -518,6 +527,7 @@ def symmetric_hull(points):
         else:
             break
 
+    # Concatenate hulls, remove slopes, and return
     hull = t1[::-1] + t2[1:-1] + t3[::-1] + t4[1:-1]
     ret = [x[0] for x in hull]
     return ret
