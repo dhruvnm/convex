@@ -11,7 +11,7 @@ from time import perf_counter
 plt.figure()
 plt.scatter(x, y)
 plt.show()
-hull = symmetric_hull(list(zip(x,y)), ak=True)
+hull = grahams_scan(list(zip(x,y)), True)
 plt.figure()
 plt.scatter(x, y)
 draw_hull(hull)

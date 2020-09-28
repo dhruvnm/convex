@@ -8,8 +8,8 @@ from statistics import median, mean
 from time import perf_counter
 import csv
 
-# 10000 point distributions
-N = 1000000
+# Define the number of points in each distributioon
+N = 10000
 
 # Number of pointsets for each distribution
 M = 5
@@ -35,15 +35,23 @@ for distribution in distributions:
         (x, y) = distribution(N)
         pointsets[-1].append((x, y))
 
-# Get hulls and store statistical data
+# Each algorithm with and without akl-toussant heuristic
 algorithms = [grahams_scan, \
+              lambda p : grahams_scan(p, True), \
               andrews_monotone_chain, \
+              lambda p : andrews_monotone_chain(p, True), \
               divide_and_conquer, \
+              lambda p : divide_and_conquer(p, True), \
               jarvis_march, \
+              lambda p : jarvis_march(p, True), \
               chans_algorithm, \
+              lambda p : chans_algorithm(p, True), \
               chans_algorithm_mod, \
+              lambda p : chans_algorithm_mod(p, True), \
               quickhull, \
-              symmetric_hull]
+              lambda p : quickhull(p, True), \
+              symmetric_hull, \
+              lambda p : symmetric_hull(p, True)]
 
 min_list = []
 max_list = []
@@ -51,13 +59,21 @@ mean_list = []
 median_list = []
 
 alg_labels = ["Graham's Scan", \
+              "Graham's Scan w/A-T", \
               "Andrew's Monotone Chain", \
+              "Andrew's Monotone Chain w/A-T", \
               "Divide and Conquer", \
+              "Divide and Conquer w/A-T", \
               "Jarvis March", \
+              "Jarvis March w/A-T", \
               "Chan's Algorithm", \
+              "Chan's Algorithm w/A-T", \
               "Chan's Algorithm Modified", \
+              "Chan's Algorithm Modified w/A-T", \
               "Quickhull", \
-              "SymmetricHull"]
+              "Quickhull w/A-T", \
+              "SymmetricHull", \
+              "SymmetricHull w/A-T"]
 
 # Create a CSV file with output
 dist_labels = ["", \
@@ -80,13 +96,6 @@ for i, algorithm in enumerate(algorithms):
     mean_list.append([])
     median_list.append([])
     for j, points in enumerate(pointsets):
-        if i != 0 and i != 7:
-            print("Skipping Algorithm")
-            min_list[-1].append('N/A')
-            max_list[-1].append('N/A')
-            mean_list[-1].append('N/A')
-            median_list[-1].append('N/A')
-            continue 
         times = []
         for (x, y) in points:
             points = list(zip(x, y))
