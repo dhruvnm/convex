@@ -7,11 +7,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from time import perf_counter
 
-(x, y) = uniform_disk(1000)
+(x, y) = uniform_kgon(100000, 6)
 plt.figure()
 plt.scatter(x, y)
 plt.show()
-hull = quickhull(list(zip(x,y)))
+hull = symmetric_hull(list(zip(x,y)))
 plt.figure()
 plt.scatter(x, y)
 draw_hull(hull)

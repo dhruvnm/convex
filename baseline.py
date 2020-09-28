@@ -5,11 +5,11 @@ from r2dist import uniform_disk, uniform_circle, uniform_kgon, gaussian, \
 from convex import grahams_scan, andrews_monotone_chain, divide_and_conquer, \
     jarvis_march, chans_algorithm, quickhull, chans_algorithm_mod, symmetric_hull
 from statistics import median, mean
-from time import perf_counter_ns
+from time import perf_counter
 import csv
 
-# 1000 point distributions
-N = 1000
+# 10000 point distributions
+N = 1000000
 
 # Number of pointsets for each distribution
 M = 5
@@ -50,25 +50,6 @@ max_list = []
 mean_list = []
 median_list = []
 
-for algorithm in algorithms:
-    min_list.append([])
-    max_list.append([])
-    mean_list.append([])
-    median_list.append([])
-    for points in pointsets:
-        times = []
-        for (x, y) in points:
-            points = list(zip(x, y))
-            t_start = perf_counter_ns()
-            algorithm(points)
-            t_stop = perf_counter_ns()
-            times.append(t_stop - t_start)
-        min_list[-1].append(min(times))
-        max_list[-1].append(max(times))
-        mean_list[-1].append(mean(times))
-        median_list[-1].append(median(times))
-
-# Create a CSV file with output
 alg_labels = ["Graham's Scan", \
               "Andrew's Monotone Chain", \
               "Divide and Conquer", \
@@ -78,6 +59,7 @@ alg_labels = ["Graham's Scan", \
               "Quickhull", \
               "SymmetricHull"]
 
+# Create a CSV file with output
 dist_labels = ["", \
                "Uniform Disk", \
                "Uniform Circle", \
@@ -90,6 +72,33 @@ dist_labels = ["", \
                "Lognormal", \
                "Johnson's SU", \
                "Extreme Value"]
+
+for i, algorithm in enumerate(algorithms):
+    print("Starting Algorithm: ", alg_labels[i])
+    min_list.append([])
+    max_list.append([])
+    mean_list.append([])
+    median_list.append([])
+    for j, points in enumerate(pointsets):
+        if i != 0 and i != 7:
+            print("Skipping Algorithm")
+            min_list[-1].append('N/A')
+            max_list[-1].append('N/A')
+            mean_list[-1].append('N/A')
+            median_list[-1].append('N/A')
+            continue 
+        times = []
+        for (x, y) in points:
+            points = list(zip(x, y))
+            t_start = perf_counter()
+            algorithm(points)
+            t_stop = perf_counter()
+            times.append(t_stop - t_start)
+        min_list[-1].append(min(times))
+        max_list[-1].append(max(times))
+        mean_list[-1].append(mean(times))
+        median_list[-1].append(median(times))
+    print("Finishing Algorithm: ", alg_labels[i])
 
 with open ("min.csv", mode="w", newline="") as min_file:
     writer = csv.writer(min_file, delimiter=",")
