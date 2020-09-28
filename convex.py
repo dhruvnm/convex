@@ -1,16 +1,19 @@
-from utility import orient, pseudo_angle, pseudo_distance
+from utility import orient, pseudo_angle, pseudo_distance, akl_toussaint
 import numpy as np
 import matplotlib.pyplot as plt
 from llist import dllist, dllistnode
 
-
-def grahams_scan(points):
+def grahams_scan(points, ak=False):
     """
     Compute the convex hull of points using Graham's Scan.
     Returns a list of points on the hull.
     """
     if len(points) <= 3:
         return points
+
+    if ak:
+        points, _, _, _, _ = akl_toussaint(points)
+         
 
     # First we determine the lowest point in the pointset
     # Break ties by taking the point with smaller x-coord
@@ -36,13 +39,16 @@ def grahams_scan(points):
 
     return stack
 
-def andrews_monotone_chain(points):
+def andrews_monotone_chain(points, ak=False):
     """
     Compute the convex hull of points using Andrew's Monotone Chain Algorithm.
     Returns a list of points on the hull.
     """
     if len(points) <= 3:
         return points
+
+    if ak:
+        points, _, _, _, _ = akl_toussaint(points)
 
     # Sort the points based on increasing x coordinate.
     points.sort(key = lambda x : x[0])
@@ -72,13 +78,16 @@ def andrews_monotone_chain(points):
     # Thus each of them ignores one of the points.
     return upper[1:] + lower[1:]
 
-def divide_and_conquer(points):
+def divide_and_conquer(points, ak=False):
     """
     Compute the convex hull of points using the Divide and Conquer algorithm.
     Returns a list of points on the hull.
     """
     if len(points) <= 3:
         return points
+
+    if ak:
+        points, _, _, _, _ = akl_toussaint(points)
 
     # Sort the points by increasing x-coordinate
     points.sort(key = lambda x : x[0])
@@ -126,7 +135,7 @@ def dac_helper(points, bad_dir):
     # Remove points below the tangent line, concatenate, and return the hull
     return left[:lp+1] + right[rp:]
 
-def jarvis_march(points):
+def jarvis_march(points, ak=False):
     """
     Compute the convex hull of points using the Jarvis March algorithm.
     Returns a list of points on the hull.
@@ -134,14 +143,18 @@ def jarvis_march(points):
     if len(points) <= 3:
         return points
 
-    # Find the lowest point in the pointset.
-    p = (0, float('Inf'))
-    x = float('Inf')
-    for point in points:
-        if point[1] < p[1]:
-            p = point
-        if point[0] < x:
-            x = point[0]
+    if ak:
+        points, _, p, _, x = akl_toussaint(points)
+        x = x[0]
+    else:
+        # Find the lowest point in the pointset.
+        p = (0, float('Inf'))
+        x = float('Inf')
+        for point in points:
+            if point[1] < p[1]:
+                p = point
+            if point[0] < x:
+                x = point[0]
 
     # The hull is initialized with a sentinel point that is effectively very
     # far to the left. The first actual point is the lowest point that was
@@ -165,7 +178,7 @@ def jarvis_march(points):
 
     return hull[1:] # Return the hull minus the sentinel point.
 
-def chans_algorithm(points):
+def chans_algorithm(points, ak=False):
     """
     Compute the convex hull using Chan's Algorithm.
     Returns a list of points on the hull.
@@ -173,14 +186,18 @@ def chans_algorithm(points):
     if len(points) <= 3:
         return points
 
-    # Find the lowest point in the pointset.
-    p = (0, float('Inf'))
-    x = float('Inf')
-    for point in points:
-        if point[1] < p[1]:
-            p = point
-        if point[0] < x:
-            x = point[0]
+    if ak:
+        points, _, p, _, x = akl_toussaint(points)
+        x = x[0]
+    else:
+        # Find the lowest point in the pointset.
+        p = (0, float('Inf'))
+        x = float('Inf')
+        for point in points:
+            if point[1] < p[1]:
+                p = point
+            if point[0] < x:
+                x = point[0]
 
     n = len(points)
     # Max number of iterations needed for the algorithm to succeed
@@ -224,7 +241,7 @@ def chans_algorithm(points):
 
     return final_hull[1:] # return hull minus the sentinel
 
-def chans_algorithm_mod(points):
+def chans_algorithm_mod(points, ak=False):
     """
     Compute the convex hull using a modified version of Chan's Algorithm.
     Returns a list of points on the hull.
@@ -232,14 +249,18 @@ def chans_algorithm_mod(points):
     if len(points) <= 3:
         return points
 
-    # Find the lowest point in the pointset.
-    p = (0, float('Inf'))
-    x = float('Inf')
-    for point in points:
-        if point[1] < p[1]:
-            p = point
-        if point[0] < x:
-            x = point[0]
+    if ak:
+        points, _, p, _, x = akl_toussaint(points)
+        x = x[0]
+    else:
+        # Find the lowest point in the pointset.
+        p = (0, float('Inf'))
+        x = float('Inf')
+        for point in points:
+            if point[1] < p[1]:
+                p = point
+            if point[0] < x:
+                x = point[0]
 
     n = len(points)
     # Max number of iterations needed for the algorithm to succeed
@@ -347,7 +368,7 @@ def jarvis_binary_search(q, hull):
 
     return hull[i]
 
-def quickhull(points):
+def quickhull(points, ak=False):
     """
     Compute the convex hull of points using the Quickhull algorithm.
     Returns a list of points on the hull.
@@ -355,14 +376,17 @@ def quickhull(points):
     if len(points) <= 3:
         return points
 
-    # Find the leftmost and rightmost points in the set.
-    leftmost = (float('Inf'), 0)
-    rightmost = (float('-Inf'), 0)
-    for point in points:
-        if point[0] < leftmost[0]:
-            leftmost = point
-        if point[0] > rightmost[0]:
-            rightmost = point
+    if ak:
+        points, _, _, rightmost, leftmost = akl_toussaint(points)
+    else:
+        # Find the leftmost and rightmost points in the set.
+        leftmost = (float('Inf'), 0)
+        rightmost = (float('-Inf'), 0)
+        for point in points:
+            if point[0] < leftmost[0]:
+                leftmost = point
+            if point[0] > rightmost[0]:
+                rightmost = point
 
     # The leftmost and rightmost points are guaranteed to be on the hull.
     # We form a circular linked list that will represent this "initial" hull.
@@ -429,7 +453,7 @@ def qh_helper(points, hull, P, Q):
     qh_helper(right, hull, C, Q)
     return
 
-def symmetric_hull(points):
+def symmetric_hull(points, ak=False):
     """
     Compute the convex hull of points using the SymmetricHull algorithm.
     Returns a list of points on the hull.
@@ -437,23 +461,26 @@ def symmetric_hull(points):
     if len(points) <= 3:
         return points
 
+    if ak:
+        points, p_top, p_bot, p_right, p_left = akl_toussaint(points)
+    else:
+        # Search for endpoints
+        p_top = (0, float('-Inf'))
+        p_bot = (0, float('Inf'))
+        p_right = (float('-Inf'), 0)
+        p_left = (float('Inf'), 0)
+        for point in points:
+            if p_top[1] < point[1]:
+                p_top = point
+            if p_bot[1] > point[1]:
+                p_bot = point
+            if p_right[0] < point[0]:
+                p_right = point
+            if p_left[0] > point[0]:
+                p_left = point
+
     # Lexicographic sort by y-coordinate
     points.sort(key = lambda x : (x[1], x[0]))
-
-    # Search for endpoints
-    p_top = (0, float('-Inf'))
-    p_bot = (0, float('Inf'))
-    p_right = (float('-Inf'), 0)
-    p_left = (float('Inf'), 0)
-    for point in points:
-        if p_top[1] < point[1]:
-            p_top = point
-        if p_bot[1] > point[1]:
-            p_bot = point
-        if p_right[0] < point[0]:
-            p_right = point
-        if p_left[0] > point[0]:
-            p_left = point
 
     # Intialize stacks
     t1= [(p_top, float('Inf'))]

@@ -60,3 +60,52 @@ def pseudo_distance(a, b, c):
     and b. The determinant computed below corresponds to the distance. 
     """
     return abs(np.linalg.det([[a[0], b[0], c[0]], [a[1], b[1], c[1]], [1, 1, 1]]))
+
+def akl_toussaint(points):
+    """
+    Runs the Akl-Toussaint heuristic to get rid of points inside the convex
+    quadrilateral formed by the 4 most extreme points. 
+    """
+    # Search for endpoints
+    p_top = (0, float('-Inf'))
+    p_bot = (0, float('Inf'))
+    p_right = (float('-Inf'), 0)
+    p_left = (float('Inf'), 0)
+    for point in points:
+        if p_top[1] < point[1]:
+            p_top = point
+        if p_bot[1] > point[1]:
+            p_bot = point
+        if p_right[0] < point[0]:
+            p_right = point
+        if p_left[0] > point[0]:
+            p_left = point
+
+    # If quadrilateral is not well formed do not reduce
+    quad = [p_top, p_left, p_bot, p_right]
+    if len(set(quad)) < 4:
+        return points
+
+    new_points = []
+    for point in points:
+        if not inside_quad(point, quad):
+            new_points.append(point)
+
+    return new_points, p_top, p_bot, p_right, p_left
+
+def inside_quad(p, quad):
+    p1 = quad[-1]
+    if p == p1:
+        return False
+
+    for p2 in quad:
+        if p == p2:
+            return False
+
+        if orient(p1, p2, p) <= 0:
+            return False
+
+        p1 = p2
+
+    return True
+    
