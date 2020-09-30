@@ -36,13 +36,13 @@ def uniform_kgon(n, k, center=(0,0)):
     p3 = (isoc_side * np.cos(inner_angle), isoc_side * np.sin(inner_angle))
 
     for i in range(n):
-        u1 = np.random.uniform(0, 1)
-        p4 = (u1*p2[0], u1*p2[1])
-        u2 = np.sqrt(np.random.uniform(0, 1))
-        p5 = ((1 - u2)*p3[0] + u2*p4[0], (1 - u2)*p3[1] + u2*p4[1])
+        u1 = np.sqrt(np.random.uniform(0, 1))
+        u2 = np.random.uniform(0, 1)
+        px = u1*(1-u2)*p2[0] + u2*u1*p3[0]
+        py = u1*(1-u2)*p2[1] + u2*u1*p3[1]
 
-        r = np.sqrt(p5[0]**2 + p5[1]**2)
-        theta = np.arctan(p5[1]/p5[0])
+        r = np.sqrt(px**2 + py**2)
+        theta = np.arctan(px/py)
 
         u3 = np.floor(k*np.random.uniform(0, 1))
         theta += inner_angle * u3
