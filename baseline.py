@@ -9,7 +9,7 @@ from time import perf_counter
 import csv
 
 # Define the number of points in each distributioon
-N = 10000
+N = 1000
 
 # Number of pointsets for each distribution
 M = 5
@@ -46,8 +46,12 @@ algorithms = [grahams_scan, \
               lambda p : jarvis_march(p, True), \
               chans_algorithm, \
               lambda p : chans_algorithm(p, True), \
+              lambda p : chans_algorithm(p, False, symmetric_hull), \
+              lambda p : chans_algorithm(p, True, symmetric_hull), \
               chans_algorithm_mod, \
               lambda p : chans_algorithm_mod(p, True), \
+              lambda p : chans_algorithm_mod(p, False, symmetric_hull), \
+              lambda p : chans_algorithm_mod(p, True, symmetric_hull), \
               quickhull, \
               lambda p : quickhull(p, True), \
               symmetric_hull, \
@@ -68,8 +72,12 @@ alg_labels = ["Graham's Scan", \
               "Jarvis March w/A-T", \
               "Chan's Algorithm", \
               "Chan's Algorithm w/A-T", \
+              "Chan's Algorithm w/Symmetric Hull", \
+              "Chan's Algorithm w/A-T and Symmetric Hull", \
               "Chan's Algorithm Modified", \
               "Chan's Algorithm Modified w/A-T", \
+              "Chan's Algorithm Modified w/Symmetric Hull", \
+              "Chan's Algorithm Modified w/A-T and Symmetric Hull", \
               "Quickhull", \
               "Quickhull w/A-T", \
               "SymmetricHull", \
